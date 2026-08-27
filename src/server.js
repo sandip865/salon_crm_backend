@@ -38,9 +38,18 @@ mongoose.set('toJSON', {
   }
 });
 
-mongoose.connect(MONGODB_URI)
-  .then(() => console.log('MongoDB Connected'))
-  .catch(err => console.log(err));
+app.use(async (req, res, next) => {
+  if (mongoose.connection.readyState !== 1) {
+    try {
+      await mongoose.connect(process.env.MONGODB_URI);
+      console.log('MongoDB Connected');
+    } catch (error) {
+      console.error('MongoDB Connection Error:', error);
+      return res.status(500).json({ error: 'Database connection failed', details: error.message });
+    }
+  }
+  next();
+});
 
 app.get('/', (req, res) => {
   res.send('Salon CRM API Running');
