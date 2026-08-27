@@ -23,6 +23,43 @@ app.get('/api/debug', (req, res) => {
   });
 });
 
+app.get('/api/seed', async (req, res) => {
+  try {
+    const Role = require('./models/role.model');
+    const User = require('./models/user.model');
+    
+    // 1. Create Super Admin Role with full permissions
+    let superAdminRole = await Role.findOne({ name: 'SUPER_ADMIN' });
+    if (!superAdminRole) {
+      superAdminRole = await Role.create({
+        name: 'SUPER_ADMIN',
+        permissions: [
+          { resource: 'Dashboard', actions: ['R'] },
+          { resource: 'Manage Plans', actions: ['C', 'R', 'U', 'D'] },
+          { resource: 'Manage Salons', actions: ['C', 'R', 'U', 'D'] },
+          { resource: 'Subscription History', actions: ['R'] },
+          { resource: 'User Management', actions: ['C', 'R', 'U', 'D'] },
+        ]
+      });
+    }
+
+    // 2. Create default super admin user (admin@saloncrm.com / Admin@123)
+    let superAdminUser = await User.findOne({ email: 'admin@saloncrm.com' });
+    if (!superAdminUser) {
+      superAdminUser = await User.create({
+        email: 'admin@saloncrm.com',
+        password: 'Admin@123',
+        name: 'Super Admin',
+        role: superAdminRole._id
+      });
+    }
+
+    res.json({ success: true, message: 'Database seeded successfully', email: 'admin@saloncrm.com' });
+  } catch (error) {
+    res.status(500).json({ error: 'Seed failed', details: error.message });
+  }
+});
+
 app.use('/api', routes);
 
 // Centralized error handling
