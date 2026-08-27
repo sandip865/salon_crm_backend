@@ -14,6 +14,19 @@ app.use(express.json());
 const routes = require('./routes');
 const errorHandler = require('./middlewares/errorHandler');
 
+app.use(async (req, res, next) => {
+  if (mongoose.connection.readyState !== 1) {
+    try {
+      await mongoose.connect(process.env.MONGODB_URI);
+      console.log('MongoDB Connected');
+    } catch (error) {
+      console.error('MongoDB Connection Error:', error);
+      return res.status(500).json({ error: 'Database connection failed', details: error.message });
+    }
+  }
+  next();
+});
+
 // Debug route to check env
 app.get('/api/debug', (req, res) => {
   res.json({
@@ -75,18 +88,7 @@ mongoose.set('toJSON', {
   }
 });
 
-app.use(async (req, res, next) => {
-  if (mongoose.connection.readyState !== 1) {
-    try {
-      await mongoose.connect(process.env.MONGODB_URI);
-      console.log('MongoDB Connected');
-    } catch (error) {
-      console.error('MongoDB Connection Error:', error);
-      return res.status(500).json({ error: 'Database connection failed', details: error.message });
-    }
-  }
-  next();
-});
+
 
 app.get('/', (req, res) => {
   res.send('Salon CRM API Running');
