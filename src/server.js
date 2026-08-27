@@ -14,6 +14,15 @@ app.use(express.json());
 const routes = require('./routes');
 const errorHandler = require('./middlewares/errorHandler');
 
+// Debug route to check env
+app.get('/api/debug', (req, res) => {
+  res.json({
+    hasMongoUri: !!process.env.MONGODB_URI,
+    mongoUriPrefix: process.env.MONGODB_URI ? process.env.MONGODB_URI.substring(0, 15) : null,
+    nodeEnv: process.env.NODE_ENV
+  });
+});
+
 app.use('/api', routes);
 
 // Centralized error handling
