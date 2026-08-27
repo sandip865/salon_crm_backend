@@ -40,6 +40,7 @@ app.get('/api/seed', async (req, res) => {
   try {
     const Role = require('./models/role.model');
     const User = require('./models/user.model');
+    const Salon = require('./models/salon.model');
     
     // 1. Create Super Admin Role with full permissions
     let superAdminRole = await Role.findOne({ name: 'SUPER_ADMIN' });
@@ -56,18 +57,39 @@ app.get('/api/seed', async (req, res) => {
       });
     }
 
-    // 2. Create default super admin user (admin@saloncrm.com / Admin@123)
+    // 2. Create Default Salon
+    let defaultSalon = await Salon.findOne({ name: 'Default HQ' });
+    if (!defaultSalon) {
+      defaultSalon = await Salon.create({
+        name: 'Default HQ',
+        latitude: 19.0760, // Default to Mumbai
+        longitude: 72.8777,
+        allowedRadius: 500,
+        subscriptionStatus: 'ACTIVE'
+      });
+    }
+
+    // 3. Create default super admin user (admin@saloncrm.com / Admin@123)
     let superAdminUser = await User.findOne({ email: 'admin@saloncrm.com' });
     if (!superAdminUser) {
       superAdminUser = await User.create({
         email: 'admin@saloncrm.com',
         password: 'Admin@123',
         name: 'Super Admin',
-        role: superAdminRole._id
+        role: superAdminRole._id,
+        salonId: defaultSalon._id,
+        salons: [defaultSalon._id]
       });
+    } else if (!superAdminUser.salonId) {
+      // Update existing super admin if they don't have a salon
+      superAdminUser.salonId = defaultSalon._id;
+      if (!superAdminUser.salons.includes(defaultSalon._id)) {
+        superAdminUser.salons.push(defaultSalon._id);
+      }
+      await superAdminUser.save();
     }
 
-    res.json({ success: true, message: 'Database seeded successfully', email: 'admin@saloncrm.com' });
+    res.json({ success: true, message: 'Database seeded successfully with default organization', email: 'admin@saloncrm.com' });
   } catch (error) {
     res.status(500).json({ error: 'Seed failed', details: error.message });
   }
