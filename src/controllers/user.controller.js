@@ -12,10 +12,10 @@ exports.createUser = async (req, res) => {
 
     const existingUser = await User.findOne({ email });
     if (existingUser) {
-      if (salonId) {
+      if (reqSalonId) {
         if (!existingUser.salons) existingUser.salons = [];
-        if (!existingUser.salons.includes(salonId)) {
-          existingUser.salons.push(salonId);
+        if (!existingUser.salons.includes(reqSalonId)) {
+          existingUser.salons.push(reqSalonId);
         }
         existingUser.password = password;
         existingUser.name = name;
@@ -27,7 +27,7 @@ exports.createUser = async (req, res) => {
       return res.status(400).json({ error: 'User already exists' });
     }
 
-    const user = await User.create({ email, password, name, phone, role, salonId, salons: salonId ? [salonId] : [] });
+    const user = await User.create({ email, password, name, phone, role, salonId: reqSalonId, salons: reqSalonId ? [reqSalonId] : [] });
     res.status(201).json({ success: true, data: { id: user._id, email: user.email, name: user.name, phone: user.phone, role: user.role } });
   } catch (error) {
     res.status(500).json({ success: false, error: error.message });
