@@ -2,7 +2,7 @@ const Plan = require('../models/plan.model');
 const { getPagination } = require('../utils/pagination.util');
 
 exports.create = async (data) => {
-  const existingPlan = await Plan.findOne({ name: data.name });
+  const existingPlan = await Plan.findOne({ name: data.name, isDeleted: false });
   if (existingPlan) {
     return { success: false, message: 'A plan with this name already exists' };
   }
@@ -44,7 +44,7 @@ exports.update = async (id, data) => {
   const query = { _id: id };
 
   if (data.name) {
-    const existingPlan = await Plan.findOne({ name: data.name, _id: { $ne: id } });
+    const existingPlan = await Plan.findOne({ name: data.name, _id: { $ne: id }, isDeleted: false });
     if (existingPlan) {
       return { success: false, message: 'Another plan with this name already exists' };
     }
