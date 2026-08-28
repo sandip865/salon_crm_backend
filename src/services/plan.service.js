@@ -1,5 +1,6 @@
 const Plan = require('../models/plan.model');
 const { getPagination } = require('../utils/pagination.util');
+const mongoose = require('mongoose');
 
 exports.create = async (data) => {
   const existingPlan = await Plan.findOne({ name: data.name, isDeleted: false });
@@ -44,7 +45,7 @@ exports.update = async (id, data) => {
   const query = { _id: id };
 
   if (data.name) {
-    const existingPlan = await Plan.findOne({ name: data.name, _id: { $ne: id }, isDeleted: false });
+    const existingPlan = await Plan.findOne({ name: data.name, _id: { $ne: new mongoose.Types.ObjectId(id) }, isDeleted: false });
     if (existingPlan) {
       return { success: false, message: 'Another plan with this name already exists' };
     }
