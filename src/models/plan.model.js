@@ -2,9 +2,9 @@ const mongoose = require('mongoose');
 
 const planSchema = new mongoose.Schema({
   name: { type: String, required: true },
-  clientId: { 
+  salonId: { 
     type: mongoose.Schema.Types.ObjectId, 
-    ref: 'Client',
+    ref: 'Salon',
     required: false // some plans might be global
   },
   price: { type: Number, required: true },

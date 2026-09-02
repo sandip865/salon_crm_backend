@@ -2,7 +2,9 @@ const planService = require('../services/plan.service');
 
 exports.create = async (req, res) => {
   try {
-    const result = await planService.create(req.body);
+    const data = { ...req.body };
+    if (req.tenantId) data.salonId = req.tenantId;
+    const result = await planService.create(data);
     if (!result.success) {
       return res.status(400).send(result);
     }
@@ -14,7 +16,9 @@ exports.create = async (req, res) => {
 
 exports.getAll = async (req, res) => {
   try {
-    const result = await planService.getAll(req.query);
+    const query = { ...req.query };
+    if (req.tenantId) query.salonId = req.tenantId;
+    const result = await planService.getAll(query);
     if (!result.success) {
       return res.status(400).send(result);
     }
@@ -27,7 +31,7 @@ exports.getAll = async (req, res) => {
 exports.getById = async (req, res) => {
   try {
     const { id } = req.params;
-    const result = await planService.getById(id);
+    const result = await planService.getById(id, req.tenantId);
     if (!result.success) {
       return res.status(404).send(result);
     }
@@ -40,7 +44,7 @@ exports.getById = async (req, res) => {
 exports.update = async (req, res) => {
   try {
     const { id } = req.params;
-    const result = await planService.update(id, req.body);
+    const result = await planService.update(id, req.body, req.tenantId);
     if (!result.success) {
       return res.status(404).send(result);
     }
@@ -53,7 +57,7 @@ exports.update = async (req, res) => {
 exports.remove = async (req, res) => {
   try {
     const { id } = req.params;
-    const result = await planService.remove(id);
+    const result = await planService.remove(id, req.tenantId);
     if (!result.success) {
       return res.status(400).send(result);
     }

@@ -3,7 +3,10 @@ const { getPagination } = require('../utils/pagination.util');
 const mongoose = require('mongoose');
 
 exports.create = async (data) => {
-  const existingPlan = await Plan.findOne({ name: data.name, isDeleted: false });
+  const query = { name: data.name, isDeleted: false };
+  if (data.salonId) query.salonId = data.salonId;
+  
+  const existingPlan = await Plan.findOne(query);
   if (existingPlan) {
     return { success: false, message: 'A plan with this name already exists' };
   }
@@ -34,18 +37,23 @@ exports.getAll = async (queryOptions = {}) => {
   };
 };
 
-exports.getById = async (id) => {
+exports.getById = async (id, tenantId) => {
   const query = { _id: id };
+  if (tenantId) query.salonId = tenantId;
   const doc = await Plan.findOne(query);
   if (!doc) return { success: false, message: 'Plan not found' };
   return { success: true, message: 'Success', data: doc };
 };
 
-exports.update = async (id, data) => {
+exports.update = async (id, data, tenantId) => {
   const query = { _id: id };
+  if (tenantId) query.salonId = tenantId;
 
   if (data.name) {
-    const existingPlan = await Plan.findOne({ name: data.name, _id: { $ne: new mongoose.Types.ObjectId(id) }, isDeleted: false });
+    const nameQuery = { name: data.name, _id: { $ne: new mongoose.Types.ObjectId(id) }, isDeleted: false };
+    if (tenantId) nameQuery.salonId = tenantId;
+    
+    const existingPlan = await Plan.findOne(nameQuery);
     if (existingPlan) {
       return { success: false, message: 'Another plan with this name already exists' };
     }
@@ -56,8 +64,9 @@ exports.update = async (id, data) => {
   return { success: true, message: 'Success', data: doc };
 };
 
-exports.remove = async (id) => {
+exports.remove = async (id, tenantId) => {
   const query = { _id: id };
+  if (tenantId) query.salonId = tenantId;
   const doc = await Plan.findOneAndUpdate(query, { isDeleted: true, deletedAt: new Date() }, { new: true });
   if (!doc) return { success: false, message: 'Plan not found' };
   return { success: true, message: 'Success', data: doc };

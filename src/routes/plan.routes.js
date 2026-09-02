@@ -6,7 +6,7 @@ const { enforceTenantIsolation } = require('../middlewares/tenant.middleware');
 const { checkSubscription } = require('../middlewares/subscription.middleware');
 const { checkPermission } = require('../middlewares/rbac.middleware');
 
-const planAuth = [protect]; 
+const planAuth = [protect, enforceTenantIsolation]; 
 
 router.post('/', ...planAuth, checkPermission('Manage Plans', ['C']), planController.create);
 router.get('/', ...planAuth, checkPermission('Manage Plans', ['R']), planController.getAll);
