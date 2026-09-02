@@ -4,7 +4,8 @@ const subscriptionHistoryController = require('../controllers/subscription_histo
 const { protect } = require('../middlewares/auth.middleware');
 
 const { checkPermission } = require('../middlewares/rbac.middleware');
-const subAuth = [protect];
+const { enforceTenantIsolation } = require('../middlewares/tenant.middleware');
+const subAuth = [protect, enforceTenantIsolation];
 
 router.post('/', ...subAuth, checkPermission('Subscription History', ['C']), subscriptionHistoryController.create);
 router.get('/', ...subAuth, checkPermission('Subscription History', ['R']), subscriptionHistoryController.getAll);

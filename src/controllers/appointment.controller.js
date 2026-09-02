@@ -3,7 +3,7 @@ const appointmentService = require('../services/appointment.service');
 exports.create = async (req, res) => {
   try {
     const isSuperAdmin = req.user.role === 'SUPER_ADMIN' || req.user.role?.name === 'SUPER_ADMIN';
-    const salonId = req.user.salonId || (isSuperAdmin ? (req.body.salonId || req.body.clientId) : null);
+    const salonId = req.tenantId || (isSuperAdmin ? (req.body.salonId || req.body.clientId) : null);
     
     if (!salonId) return res.status(403).json({ success: false, message: 'Forbidden: No salon associated' });
     
@@ -18,15 +18,15 @@ exports.create = async (req, res) => {
 
 exports.getAll = async (req, res) => {
   try {
-    const salonId = req.user.salonId;
+    const salonId = req.tenantId;
     const isSuperAdmin = req.user.role === 'SUPER_ADMIN' || req.user.role?.name === 'SUPER_ADMIN';
     
     if (!salonId && !isSuperAdmin) {
       return res.status(403).json({ success: false, message: 'Forbidden: No salon associated' });
     }
     
-    // Pass null if super admin, service needs to handle this
-    const result = await appointmentService.getAll(isSuperAdmin ? null : salonId, req.query);
+    const effectiveSalonId = isSuperAdmin ? (salonId || null) : salonId;
+    const result = await appointmentService.getAll(effectiveSalonId, req.query);
     if (!result.success) return res.status(400).json(result);
     
     res.json(result);
@@ -37,11 +37,12 @@ exports.getAll = async (req, res) => {
 
 exports.getById = async (req, res) => {
   try {
-    const salonId = req.user.salonId;
+    const salonId = req.tenantId;
     const isSuperAdmin = req.user.role === 'SUPER_ADMIN' || req.user.role?.name === 'SUPER_ADMIN';
     if (!salonId && !isSuperAdmin) return res.status(403).json({ success: false, message: 'Forbidden: No salon associated' });
     
-    const result = await appointmentService.getById(req.params.id, isSuperAdmin ? null : salonId);
+    const effectiveSalonId = isSuperAdmin ? (salonId || null) : salonId;
+    const result = await appointmentService.getById(req.params.id, effectiveSalonId);
     if (!result.success) return res.status(404).json(result);
     
     res.json(result);
@@ -52,11 +53,12 @@ exports.getById = async (req, res) => {
 
 exports.update = async (req, res) => {
   try {
-    const salonId = req.user.salonId;
+    const salonId = req.tenantId;
     const isSuperAdmin = req.user.role === 'SUPER_ADMIN' || req.user.role?.name === 'SUPER_ADMIN';
     if (!salonId && !isSuperAdmin) return res.status(403).json({ success: false, message: 'Forbidden: No salon associated' });
     
-    const result = await appointmentService.update(req.params.id, req.body, isSuperAdmin ? null : salonId);
+    const effectiveSalonId = isSuperAdmin ? (salonId || null) : salonId;
+    const result = await appointmentService.update(req.params.id, req.body, effectiveSalonId);
     if (!result.success) return res.status(404).json(result);
     
     res.json(result);
@@ -67,11 +69,12 @@ exports.update = async (req, res) => {
 
 exports.remove = async (req, res) => {
   try {
-    const salonId = req.user.salonId;
+    const salonId = req.tenantId;
     const isSuperAdmin = req.user.role === 'SUPER_ADMIN' || req.user.role?.name === 'SUPER_ADMIN';
     if (!salonId && !isSuperAdmin) return res.status(403).json({ success: false, message: 'Forbidden: No salon associated' });
     
-    const result = await appointmentService.remove(req.params.id, isSuperAdmin ? null : salonId);
+    const effectiveSalonId = isSuperAdmin ? (salonId || null) : salonId;
+    const result = await appointmentService.remove(req.params.id, effectiveSalonId);
     if (!result.success) return res.status(400).json(result);
     
     res.json(result);
